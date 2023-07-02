@@ -1,18 +1,21 @@
 #include "field.h"
 #include "cell_processor.h"
+
 #include <SFML/Graphics.hpp>
-#include <math.h>
+#include <cmath>
+#include <ctime>
 
 int main () {
-    sf::Vector2u resolution(800, 600);
+    sf::Vector2u resolution(1600, 1200);
     sf::RenderWindow window(sf::VideoMode(resolution.x, resolution.y), "Render");
 
-    field fld(360, 289);
-    fld.setPerocessor(antLRL_processor);
-
-    fld.process(1);
+    field fld(400, 300);
     fld.render(window);
     srand(time(NULL));
+
+    LR4_universal_online drower(fld, {"RLR", "RLR", "RLR", "RLR", "RLR", "RLR", "RLR"});
+    time_t t_0 = clock();
+    drower.start();
 
     while (window.isOpen()) {
         sf::Event event;
@@ -28,9 +31,7 @@ int main () {
                 case sf::Event::KeyReleased:
                     switch (event.key.code) {
                         case sf::Keyboard::Space:
-                            
-                            fld.process();
-
+                            drower.restart();
                             break;
                         default:
                             break;
@@ -41,6 +42,14 @@ int main () {
                     break;
             }
         }
+
+        /*if (clock() - t_0 > 1) {
+            t_0 = clock();
+            drower.step();
+        }*/
+
+        for (size_t i = 0; i < 100; i++)
+            drower.step();
         window.clear();
         fld.render(window);
         window.display();

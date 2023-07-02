@@ -1,6 +1,5 @@
 #include "cell_processor.h"
 #include <iostream>
-#include <string>
 
 #define marked     ((char)0xff)
 #define not_marked ((char)0x00)
@@ -272,7 +271,11 @@ public:
     }
 
     void move () {
-        switch (instr[(*map)[pos.x][pos.y]]) {
+        char com = (*map)[pos.x][pos.y];
+        if (com >= instr.size())
+            com = 0;
+
+        switch (instr[com]) {
             case 'R':
                 left();
                 next_color();
@@ -314,8 +317,9 @@ void LR4_uniersal_processor (sf::Vector2u size, std::vector<std::vector<field_ty
     unsigned int automats_size = 1;
     LR4_universal** automats = new LR4_universal* [automats_size];
 
+    std::string instrarr = "LLRRRLRLRLLR";
     for (unsigned int i = 0; i < automats_size; i++) {
-        automats[i] = new LR4_universal(size, map, std::string("LR"));
+        automats[i] = new LR4_universal(size, map, instrarr);
         automats[i]->spawn();
     }
 
@@ -333,3 +337,39 @@ void LR4_uniersal_processor (sf::Vector2u size, std::vector<std::vector<field_ty
 
     normalized(size, map);
 }
+
+LR4_universal_online::LR4_universal_online (field& fld, std::vector<const char*> instr) {
+    this->fld   = &fld;
+    automats.resize(instr.size());
+
+    for (size_t i = 0; i < instr.size(); i++) {
+        std::string bufstr = instr[i];
+        automats[i] = new LR4_universal(fld.size(), fld.map, bufstr);
+    }
+}
+
+void LR4_universal_online::start () {
+    for (size_t i = 0; i < automats.size(); i++) {
+        automats[i]->spawn();
+    }
+}
+
+void LR4_universal_online::restart () {
+    for (size_t x = 0; x < fld->size().x; x++) {
+        for (size_t y = 0; y < fld->size().y; y++) {
+            fld->map[x][y] = 0;
+        }
+    }
+    start();
+}
+
+void LR4_universal_online::step () {
+    for (size_t i = 0; i < automats.size(); i++) {
+        automats[i]->move();
+    }
+
+    fld->draw();
+}
+
+
+

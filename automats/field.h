@@ -73,14 +73,14 @@ public:
         window.draw(render_buf);
     }
 
-    sf::Image& draw () {
+    void draw () {
         for (unsigned int x = 0; x < _size.x; x++) {
             for (unsigned int y = 0; y < _size.y; y++) {
                 field_pic.setPixel(x, y, convert(map[x][y]));
             }
         }
 
-        return field_pic;
+        field_pic_buf = field_pic;
     }
 
     void setPerocessor (void (*processor)(sf::Vector2u size, std::vector<std::vector<field_type>>&, int)) {
@@ -90,12 +90,11 @@ public:
     void process (int seed = rand()) {
         processor(_size, map, seed);
         draw();
-        field_pic_buf = field_pic;
     }
 
 private:
     sf::Color convert(field_type cell) {
-        return sf::Color(0, static_cast<sf::Uint8>(cell), 0);
+        return sf::Color(0, cell ? 255 : 0, 0);
     }
 
     void upscale (sf::Image& img, sf::Vector2u newres) {
@@ -128,4 +127,6 @@ private:
             cur_x += scale;
         }
     }
+
+    friend class LR4_universal_online;
 };
