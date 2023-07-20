@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.s": "avr",
+        "*.hex": "xsl",
+        "*.asm": "nasm",
+        "vector": "cpp"
+    }
+}

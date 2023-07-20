@@ -9,15 +9,20 @@ int main () {
     sf::Vector2u resolution(1600, 1200);
     sf::RenderWindow window(sf::VideoMode(resolution.x, resolution.y), "Render");
 
-    field fld(512, 512);
+    field fld(120, 120);
     fld.render(window);
     srand(time(NULL));
 
-    //LR4_universal_online drower(fld, {"RLR", "RLR", "RLR", "RLR", "RLR", "RLR", "RLR"});
+    LR4_universal_online drower(fld, {"RLNL"});
     std::vector<const char*> buf;
-    for (size_t i = 0; i < 15; i++)
-        buf.push_back("LLRRRLRLRLLR");
-    LR4_universal_online drower(fld, buf);
+    //for (size_t i = 0; i < 7; i++)
+    //    buf.push_back("LLRRRLRLRLLR");
+    //LR4_universal_online drower(fld, buf);
+
+    //fractal_draw drower(fld, false, true);
+
+    //LR8_universal_online drower(fld, {"R2L2R2"});
+
     time_t t_0 = clock();
     drower.start();
 
@@ -52,7 +57,7 @@ int main () {
             drower.step();
         }*/
 
-        for (size_t i = 0; i < 10; i++)
+        for (rsize_t i = 0; i < 10; i++)
             drower.step();
         window.clear();
         fld.render(window);

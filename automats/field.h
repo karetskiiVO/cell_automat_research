@@ -9,13 +9,13 @@ typedef char field_type;
 
 class field {
 private:
-    sf::Vector2u _size;
-    std::vector<std::vector<field_type>> map;
     void (*processor)(sf::Vector2u size, std::vector<std::vector<field_type>>&, int);
     sf::Image field_pic;
     sf::Image field_pic_buf;
-
 public:
+    sf::Vector2u _size;
+    std::vector<std::vector<field_type>> map;
+
     field (unsigned int size = 1) {
         field_pic.create(size, size);
 
@@ -127,6 +127,4 @@ private:
             cur_x += scale;
         }
     }
-
-    friend class LR4_universal_online;
 };

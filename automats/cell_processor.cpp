@@ -1,5 +1,8 @@
 #include "cell_processor.h"
+
+#include <cmath>
 #include <iostream>
+#include <algorithm>
 
 #define marked     ((char)0xff)
 #define not_marked ((char)0x00)
@@ -51,7 +54,7 @@ public:
 
 };
 
-sf::Vector2i four_dir[] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+sf::Vector2i dir4[] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
 
 class antLR {
 private:
@@ -108,8 +111,8 @@ private:
     }
 
     void step () {
-        pos.x = (pos.x + four_dir[cur_dir].x + size.x) % size.x;
-        pos.y = (pos.y + four_dir[cur_dir].y + size.y) % size.y;
+        pos.x = (pos.x + dir4[cur_dir].x + size.x) % size.x;
+        pos.y = (pos.y + dir4[cur_dir].y + size.y) % size.y;
     }
 
     void next_color () {
@@ -202,8 +205,8 @@ private:
     }
 
     void step () {
-        pos.x = (pos.x + four_dir[cur_dir].x + size.x) % size.x;
-        pos.y = (pos.y + four_dir[cur_dir].y + size.y) % size.y;
+        pos.x = (pos.x + dir4[cur_dir].x + size.x) % size.x;
+        pos.y = (pos.y + dir4[cur_dir].y + size.y) % size.y;
     }
 
     void next_color () {
@@ -302,8 +305,8 @@ private:
     }
 
     void step () {
-        pos.x = (pos.x + four_dir[cur_dir].x + size.x) % size.x;
-        pos.y = (pos.y + four_dir[cur_dir].y + size.y) % size.y;
+        pos.x = (pos.x + dir4[cur_dir].x + size.x) % size.x;
+        pos.y = (pos.y + dir4[cur_dir].y + size.y) % size.y;
     }
 
     void next_color () {
@@ -371,5 +374,178 @@ void LR4_universal_online::step () {
     fld->draw();
 }
 
+fractal_draw::fractal_draw (field& fld, bool diag, bool step_by_step) {
+    this->step_by_steps = step_by_steps;
+    diag_mode = diag;
+    this->fld = &fld;
+}
 
+void fractal_draw::spawn () {
+    sf::Vector2u temp[] = {{0, 0}, {fld->size().x - 1, 0}, {0, fld->size().y - 1}, {fld->size().x - 1, fld->size().y - 1}};
+    this->pos = {fld->size().x / 2, fld->size().y / 2};
+}
 
+void fractal_draw::spawn (sf::Vector2u pos) {
+    sf::Vector2u temp[] = {{0, 0}, {fld->size().x - 1, 0}, {0, fld->size().y - 1}, {fld->size().x - 1, fld->size().y - 1}};
+    this->pos = pos;
+}
+
+void fractal_draw::restart () {
+    clear(fld->size(), fld->map);
+    start();
+}
+
+void fractal_draw::start () {
+    fld->map[std::abs(rand()) % fld->size().x][std::abs(rand()) % fld->size().y] = 2;
+}
+
+void fractal_draw::step () {
+    if (fld->map[pos.x][pos.y] == 2) {
+        int cur_dir = std::abs(rand()) % 4;
+
+        pos.x = (pos.x + dir4[cur_dir].x + fld->size().x) % fld->size().x;
+        pos.y = (pos.y + dir4[cur_dir].y + fld->size().y) % fld->size().y;
+
+        fld->map[pos.x][pos.y] = 1;
+
+        if (step_by_steps)
+            fld->draw();
+        else
+            step();
+    } else if (isaround(pos)) {
+        fld->map[pos.x][pos.y] = 2;
+        spawn();
+        fld->draw();
+    } else {
+        int cur_dir = std::abs(rand()) % 4;
+        fld->map[pos.x][pos.y] = 0;
+
+        pos.x = (pos.x + dir4[cur_dir].x + fld->size().x) % fld->size().x;
+        pos.y = (pos.y + dir4[cur_dir].y + fld->size().y) % fld->size().y;
+
+        fld->map[pos.x][pos.y] = 1;
+
+        if (step_by_steps)
+            fld->draw();
+        else
+            step();
+    }
+}
+
+bool fractal_draw::isaround (sf::Vector2u curpos) {
+    return (fld->map[(pos.x + 1) % fld->size().x][pos.y] == 2) 
+        || (fld->map[pos.x][(pos.y + 1) % fld->size().y] == 2)
+        || (fld->map[(pos.x + fld->size().x - 1) % fld->size().x][pos.y] == 2)
+        || (fld->map[pos.x][(pos.y + fld->size().y - 1) % fld->size().y] == 2);
+}
+
+sf::Vector2i dir8[] = {{0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}};
+
+class LR8_universal {
+private:
+    char colors;
+    std::string instr;
+    sf::Vector2u size;
+    std::vector<std::vector<field_type>>* map;
+
+    sf::Vector2i pos;
+    unsigned int cur_dir;
+public:
+    LR8_universal () = delete;
+
+    LR8_universal (sf::Vector2u size, std::vector<std::vector<field_type>>& map, std::string& instr) {
+        this->map   = &map;
+        this->size  = size;
+        this->instr = instr;
+
+        pos = {0, 0};
+        cur_dir = 0;
+        colors = instr.length() / 2;
+    }
+    
+    void spawn () {
+        pos = {(int)(std::abs(rand()) % size.x), (int)(std::abs(rand()) % size.y)};
+        cur_dir = std::abs(rand()) % 8;
+    }
+
+    void spawn (sf::Vector2u pos, int dir = std::abs(rand()) % 8) {
+        this->pos.x = pos.x;
+        this->pos.y = pos.y;
+        cur_dir = dir;
+    }
+
+    void move () {
+        char com = (*map)[pos.x][pos.y];
+        if (2 * com >= instr.size())
+            com = 0;
+
+        switch (instr[2 * com]) {
+            case 'R':
+                for (size_t i = 0; i < instr[2 * com + 1] - '0'; i++) 
+                    left();
+                next_color();
+                step();
+                break;
+            case 'L':
+                for (size_t i = 0; i < instr[2 * com + 1] - '0'; i++) 
+                    right();
+                next_color();
+                step();
+                break;
+            case 'N':
+                next_color();
+                step();
+                break;
+        }
+    }
+private:
+    void left  () {
+        cur_dir = (cur_dir + 1) % 8;
+    }
+
+    void right () {
+        cur_dir = (cur_dir + 4 - 1) % 8;
+    }
+
+    void step () {
+        pos.x = (pos.x + dir8[cur_dir].x + size.x) % size.x;
+        pos.y = (pos.y + dir8[cur_dir].y + size.y) % size.y;
+    }
+
+    void next_color () {
+        (*map)[pos.x][pos.y] = ((*map)[pos.x][pos.y] + 1) % colors;
+    }
+};
+
+LR8_universal_online::LR8_universal_online (field& fld, std::vector<const char*> instr) {
+    this->fld   = &fld;
+    automats.resize(instr.size());
+
+    for (size_t i = 0; i < instr.size(); i++) {
+        std::string bufstr = instr[i];
+        automats[i] = new LR8_universal(fld.size(), fld.map, bufstr);
+    }
+}
+
+void LR8_universal_online::start () {
+    for (size_t i = 0; i < automats.size(); i++) {
+        automats[i]->spawn();
+    }
+}
+
+void LR8_universal_online::restart () {
+    for (size_t x = 0; x < fld->size().x; x++) {
+        for (size_t y = 0; y < fld->size().y; y++) {
+            fld->map[x][y] = 0;
+        }
+    }
+    start();
+}
+
+void LR8_universal_online::step () {
+    for (size_t i = 0; i < automats.size(); i++) {
+        automats[i]->move();
+    }
+
+    fld->draw();
+}
