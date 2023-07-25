@@ -1,7 +1,6 @@
-#include <SFML/Graphics.hpp>
-
 #include <cmath>
 #include <ctime>
+#include <SFML/Graphics.hpp>
 
 #include "dungeon.h"
 
@@ -10,7 +9,7 @@ int main () {
     sf::RenderWindow window(sf::VideoMode(resolution.x, resolution.y), "Render");
 
     srand(time(NULL));
-    dungeon dng(128, 128);
+    dungeon dng(64, 64);
 
     time_t t_0 = clock();
 
@@ -30,6 +29,10 @@ int main () {
                     switch (event.key.code) {
                         case sf::Keyboard::Space:
                             dng.restart();
+                            dng.process();
+                            break;
+                        case sf::Keyboard::Enter:
+                            dng.process();
                             break;
                         default:
                             break;
@@ -41,10 +44,10 @@ int main () {
             }
         }
 
-        if (clock() - t_0 > 1) {
-            t_0 = clock();
-            dng.process();
-        }
+        // if (clock() - t_0 > 50) {
+        //     t_0 = clock();
+        //     dng.process();
+        // }
 
         window.clear();
         dng.render(window);        

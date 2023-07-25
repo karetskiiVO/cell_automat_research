@@ -12,7 +12,7 @@ private:
     sf::Image field_pic;
     sf::Image field_pic_buf;
 
-    std::vector<architector*> builders;
+    std::vector<architector*> s_hall_builders;
 
 public:
     sf::Vector2i _size;
@@ -34,9 +34,9 @@ public:
             }
         }
 
-        builders.clear();
-        builders.push_back(new architector(map, _size));
-        builders[0]->spawn(_size / 2);
+        s_hall_builders.clear();
+        s_hall_builders.push_back(new s_hall_builder(map, _size));
+        s_hall_builders[0]->spawn(_size / 2);
         map[_size.x / 2][_size.y / 2] = 1;
     }
 
@@ -55,9 +55,9 @@ public:
             }
         }
 
-        builders.clear();
-        builders.push_back(new architector(map, _size));
-        builders[0]->spawn(_size / 2);
+        s_hall_builders.clear();
+        s_hall_builders.push_back(new s_hall_builder(map, _size));
+        s_hall_builders[0]->spawn(_size / 2);
         map[_size.x / 2][_size.y / 2] = 1;
     }
 
@@ -95,44 +95,46 @@ public:
             }
         }
 
-        builders.clear();
-        builders.push_back(new architector(map, _size));
-        builders[0]->spawn(_size / 2);
+        s_hall_builders.clear();
+        s_hall_builders.push_back(new s_hall_builder(map, _size));
+        s_hall_builders[0]->spawn(_size / 2);
         map[_size.x / 2][_size.y / 2] = 1;
     }
 
     void process () {
-        std::vector<architector*> builders_accum;
+        std::vector<architector*> s_hall_builders_accum;
         std::vector<architector*>* buf = nullptr;
 
-        for (int i = 0; i < builders.size(); i++) {
-            buf = builders[i]->step();
+        for (int i = 0; i < s_hall_builders.size(); i++) {
+            buf = s_hall_builders[i]->step();
             if (!buf) continue;
 
-            builders_accum.insert(builders_accum.end(), (*buf).begin(), (*buf).end());
+            s_hall_builders_accum.insert(s_hall_builders_accum.end(), (*buf).begin(), (*buf).end());
             delete buf;
         }
 
         // delete dead
         int dead_workers = 0;
-        for (int i = 0; i < builders.size(); i++) {
-            if (!builders[i]->alive()) {
+        for (int i = 0; i < s_hall_builders.size(); i++) {
+            if (!s_hall_builders[i]->alive()) {
                 dead_workers++;
             } else if (dead_workers) {
-                std::swap(builders[i - dead_workers], builders[i]);
+                std::swap(s_hall_builders[i - dead_workers], s_hall_builders[i]);
             }
         }
-        builders.resize(builders.size() - dead_workers);
+        s_hall_builders.resize(s_hall_builders.size() - dead_workers);
 
-        if (builders_accum.size() > 0) 
-            builders.insert(builders.end(), builders_accum.begin(), builders_accum.end());
+        if (s_hall_builders_accum.size() > 0) 
+            s_hall_builders.insert(s_hall_builders.end(), s_hall_builders_accum.begin(), s_hall_builders_accum.end());
 
         draw();
     }
 
 private:
     sf::Color convert(field_type cell) {
-        return sf::Color(0, cell ? 255 : 0, 0);
+        const sf::Color arr[] = {sf::Color::Black, sf::Color::Blue, sf::Color::Yellow, sf::Color::Red};
+
+        return arr[cell];
     }
 
     void upscale (sf::Image& img, sf::Vector2u newres) {
