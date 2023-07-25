@@ -3,6 +3,9 @@
 #define hall 1
 #define room 2
 #define door 3
+#define wall 4
+
+#define NUM_OF_ARCHITECTORS 2
 
 #include <vector>
 #include <random>
@@ -10,11 +13,10 @@
 #include <SFML/Graphics.hpp>
 
 class architector {
-    
-    friend class room_builder;
-    friend class s_hall_builder;
 
-private:
+    friend static void set_new_architectors ();
+
+protected:
     std::vector<std::vector<char>>* map;
     sf::Vector2i size;
 
@@ -23,15 +25,18 @@ private:
 
     const sf::Vector2i arr_dir[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
 public:
-    
+    virtual ~architector ();
+
     void kill ();
     bool alive ();
 
     virtual void spawn (sf::Vector2i pos = {rand(), rand()}, int dir = rand()) = 0;
     virtual std::vector<architector*>* step () = 0;
 
-private:
+protected:
     int rev_dir (int dir);
+    bool probability_random (double probability);
+    void set_new_architectors (std::vector<architector*>*& res, sf::Vector2i pos, int dir, std::vector<double> probabilities = {0.5, 0.5});
 };
 
 class s_hall_builder : public architector {
@@ -47,7 +52,6 @@ public:
 
 private:
     int next_random_direction (int curr_dir);
-    bool probability_random (double probability);
 };
 
 class room_builder : public architector {

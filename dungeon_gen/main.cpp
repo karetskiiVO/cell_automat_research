@@ -44,10 +44,10 @@ int main () {
             }
         }
 
-        // if (clock() - t_0 > 50) {
-        //     t_0 = clock();
-        //     dng.process();
-        // }
+        if (clock() - t_0 > 50) {
+            t_0 = clock();
+            dng.process();
+        }
 
         window.clear();
         dng.render(window);        

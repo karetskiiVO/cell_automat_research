@@ -56,7 +56,7 @@ public:
         }
 
         s_hall_builders.clear();
-        s_hall_builders.push_back(new s_hall_builder(map, _size));
+        s_hall_builders.push_back(new room_builder(map, _size));
         s_hall_builders[0]->spawn(_size / 2);
         map[_size.x / 2][_size.y / 2] = 1;
     }
@@ -132,7 +132,7 @@ public:
 
 private:
     sf::Color convert(field_type cell) {
-        const sf::Color arr[] = {sf::Color::Black, sf::Color::Blue, sf::Color::Yellow, sf::Color::Red};
+        const sf::Color arr[] = {sf::Color::Black, sf::Color::Blue, sf::Color::Yellow, sf::Color::Red, sf::Color::Green};
 
         return arr[cell];
     }

@@ -37,8 +37,8 @@ std::vector<architector*>* s_hall_builder::step () {
 
     vector<architector*>* res = nullptr;
     
-    random_device rd{};
-    mt19937 gen{rd()};
+    random_device rd;
+    mt19937 gen(rd());
     normal_distribution<double> gen_normal{10.0, 2.0};
 
     int len = max<int>(5, abs(round(gen_normal(gen))));
@@ -57,8 +57,10 @@ std::vector<architector*>* s_hall_builder::step () {
         switch ((*map)[pos.x][pos.y]) {
             case 0:
                 break;
+            case wall:
+                if ((*map)[(pos + arr_dir[dir]).x][(pos + arr_dir[dir]).y] == room)
+                    (*map)[pos.x][pos.y] = door;
             case room:
-                (*map)[pos.x][pos.y] = door;
             case door:
             case hall:
                 kill();
@@ -75,23 +77,8 @@ std::vector<architector*>* s_hall_builder::step () {
         if (i == dir || i == prev_dir) continue;
 
         // here might be more types, such as secret and room
-        if (probability_random(0.17)) {
-            if (!res) res = new vector<architector*> ();
-    
-            architector* buf_architector = new s_hall_builder(map, size);
-            buf_architector->spawn(pos, i);
-            res->push_back(buf_architector);
-            continue;
-        }
-
-        if (probability_random(0.7)) {
-            if (!res) res = new vector<architector*> ();
-    
-            architector* buf_architector = new room_builder(map, size);
-            buf_architector->spawn(pos, i);
-
-            res->push_back(buf_architector);
-            continue;
+        if (probability_random(0.8)) {
+            set_new_architectors(res, pos, i, {4, 40});
         }
     }
 
@@ -103,8 +90,3 @@ int s_hall_builder::next_random_direction (int curr_dir) {
 
     return res_dir;
 }
-
-bool s_hall_builder::probability_random (double probability) {
-    return (1.0 * std::abs(rand()) < RAND_MAX * probability);
-}
-

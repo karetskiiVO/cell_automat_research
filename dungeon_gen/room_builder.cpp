@@ -33,41 +33,54 @@ std::vector<architector*>* room_builder::step () {
     sf::Vector2i left_pos  = pos + arr_dir[dir] + arr_dir[left_dir];
     sf::Vector2i right_pos = pos + arr_dir[dir];
 
+    // search for free space
+
     for (int i = 0; i < room_size.x - 1; i++, left_pos += arr_dir[left_dir]) {
         sf::Vector2i buf = left_pos;
+        bool clear = true;
+
         for (int j = 0; j < room_size.y; j++, buf += arr_dir[dir]) {
             if (buf.x < 0       || buf.y < 0 ||
                 buf.x >= size.x || buf.y >= size.y) {
-                i = room_size.x;
+                clear = false;
                 break;
             }
 
             if ((*map)[buf.x][buf.y]) {
-                i = room_size.x;
+                clear = false;
                 break;
             }
         }
 
-        left_l++;
+        if (clear) {
+            left_l++;
+        } else {
+            break;
+        }
     }
 
     for (int i = 0; i < room_size.x; i++, right_pos += arr_dir[right_dir]) {
         sf::Vector2i buf = right_pos;
+        bool clear = true;
 
         for (int j = 0; j < room_size.y; j++, buf += arr_dir[dir]) {
             if (buf.x < 0       || buf.y < 0 ||
                 buf.x >= size.x || buf.y >= size.y) {
-                i = room_size.x;
+                clear = false;
                 break;
             }
 
             if ((*map)[buf.x][buf.y]) {
-                i = room_size.x;
+                clear = false;
                 break;
             }
         }
 
-        right_l++;
+        if (clear) {
+            right_l++;
+        } else {
+            break;
+        }
     }
 
     if (!right_l || left_l + right_l < room_size.x) {
@@ -79,11 +92,23 @@ std::vector<architector*>* room_builder::step () {
     left_pos  = pos + arr_dir[dir] + arr_dir[left_dir];
     right_pos = pos + arr_dir[dir];
 
+    if (left_l - d == 0 || room_size.x + d - left_l == 1) {
+        kill();
+        return res;
+    }
+
+    // draw room
+
     for (int i = 0; i < left_l - d; i++, left_pos += arr_dir[left_dir]) {
         sf::Vector2i buf = left_pos;
 
         for (int j = 0; j < room_size.y; j++, buf += arr_dir[dir]) {
-            (*map)[buf.x][buf.y] = room;
+            if (i == left_l - d - 1 ||
+                j == 0 || j == room_size.y - 1) {
+                (*map)[buf.x][buf.y] = wall;
+            } else {
+                (*map)[buf.x][buf.y] = room;
+            }
         }
     }
 
@@ -91,15 +116,47 @@ std::vector<architector*>* room_builder::step () {
         sf::Vector2i buf = right_pos;
 
         for (int j = 0; j < room_size.y; j++, buf += arr_dir[dir]) {
-            (*map)[buf.x][buf.y] = room;
+            if (i == room_size.x + d - left_l - 1 ||
+                j == 0 || j == room_size.y - 1) {
+                (*map)[buf.x][buf.y] = wall;
+            } else {
+                (*map)[buf.x][buf.y] = room;
+            }
         }
     }
+
+    // draw door
 
     sf::Vector2i door_pos = pos + arr_dir[dir];
     (*map)[door_pos.x][door_pos.y] = door;
 
+    // genere new objects
+
+    sf::Vector2i new_doors_pos = door_pos;
+    int new_dors_dir = (dir + 1) % 4;
+    for (int i = 0; i < 2 * (room_size.x + room_size.y - 4); i++) {
+        int bufdir = (new_dors_dir + 3) % 4; // direction to xenter
+        sf::Vector2i tocen = new_doors_pos + arr_dir[bufdir];
+
+        if ((*map)[tocen.x][tocen.y] == wall) {
+            new_dors_dir = bufdir;
+            new_doors_pos += arr_dir[new_dors_dir];
+            bufdir = (new_dors_dir + 3) % 4;
+        }
+
+        bufdir = (new_dors_dir + 1) % 4;
+        if (probability_random(0.1)) {
+            set_new_architectors(res, new_doors_pos, bufdir, {4, 10});
+            (*map)[new_doors_pos.x][new_doors_pos.y] = door;
+        }
+
+        new_doors_pos += arr_dir[new_dors_dir];
+    }
+
     return res;
 }
+
+
 
 void room_builder::spawn (sf::Vector2i pos, int dir) {
     if (_alive) return;
