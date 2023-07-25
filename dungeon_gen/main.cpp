@@ -32,7 +32,7 @@ int main () {
                             dng.process();
                             break;
                         case sf::Keyboard::Enter:
-                            dng.process();
+                            dng.post_processing();
                             break;
                         default:
                             break;
